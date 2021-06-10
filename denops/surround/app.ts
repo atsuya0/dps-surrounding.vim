@@ -112,9 +112,48 @@ main(async ({ vim }) => {
     }
   });
 
+  vim.register({
+    async surrondLine(arg: unknown): Promise<void> {
+      const surrounding = surroundings.find(surrounding => surrounding.left === arg);
+      if (surrounding === undefined) {
+        console.log('Not surrounding character');
+        return;
+      }
+      const currentLine = await getLine(0);
+      const beginningIndex = currentLine.search(/\S/);
+      setLine(0, currentLine.slice(0, beginningIndex) + surrounding.left + currentLine.slice(beginningIndex) + surrounding.right)
+    }
+  });
+
+  vim.register({
+    async surrondWord(arg: unknown): Promise<void> {
+      const surrounding = surroundings.find(surrounding => surrounding.left === arg);
+      if (surrounding === undefined) {
+        console.log('Not surrounding character');
+        return;
+      }
+      const currentLine = await getLine(0);
+      const currentCol = await vim.call('col', '.');
+      if (typeof currentCol !== 'number') return;
+
+      const endIndex = currentLine.slice(currentCol).search(/\s/) + currentCol;
+      const reverseLine = currentLine.split('').reverse().join('');
+      const oppositeCol = currentLine.length - currentCol
+      const beginningIndex = currentLine.length - reverseLine.slice(oppositeCol).search(/\s/) - oppositeCol
+      const newLine = currentLine.slice(0, beginningIndex)
+                        + surrounding.left
+                        + currentLine.slice(beginningIndex, endIndex)
+                        + surrounding.right
+                        + currentLine.slice(endIndex)
+      setLine(0, newLine)
+    }
+  });
+
   vim.execute(`
     command! RmSurround call denops#request('${vim.name}', 'remove', [])
     command! -nargs=1 ChSurround call denops#request('${vim.name}', 'change', [<f-args>])
+    command! -nargs=1 SurroundLine call denops#request('${vim.name}', 'surrondLine', [<f-args>])
+    command! -nargs=1 SurroundWord call denops#request('${vim.name}', 'surrondWord', [<f-args>])
   `);
 });
 
