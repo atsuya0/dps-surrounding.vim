@@ -136,7 +136,11 @@ main(async ({ vim }) => {
       const currentCol = await vim.call('col', '.');
       if (typeof currentCol !== 'number') return;
 
-      const endIndex = currentLine.slice(currentCol).search(/\s/) + currentCol;
+      let endIndex = currentLine.length;
+      const indexBetweenNextWordAndWordAfterThat = currentLine.slice(currentCol).search(/\s/)
+      if (indexBetweenNextWordAndWordAfterThat >= 0) {
+        endIndex = indexBetweenNextWordAndWordAfterThat + currentCol;
+      }
       const reverseLine = currentLine.split('').reverse().join('');
       const oppositeCol = currentLine.length - currentCol
       const beginningIndex = currentLine.length - reverseLine.slice(oppositeCol).search(/\s/) - oppositeCol
