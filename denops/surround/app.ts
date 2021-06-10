@@ -82,8 +82,39 @@ main(async ({ vim }) => {
     }
   });
 
+  vim.register({
+    async change(arg: unknown): Promise<void> {
+      const currentRow = await vim.call('line', '.');
+      if (typeof currentRow !== 'number') return;
+      const currentCol = await vim.call('col', '.');
+      if (typeof currentCol !== 'number') return;
+
+      const currentPoint: Point = { row: currentRow, col: currentCol - 1 };
+      const currentLine = await getLine(currentPoint.row);
+      const surrounding = surroundings.find(surrounding => surrounding.left === currentLine[currentPoint.col]);
+      if (surrounding === undefined) {
+        console.log('Not surrounding character');
+        return;
+      }
+
+      const correspondingPoint = await searchSurrounding(surrounding, { ...currentPoint, col: currentPoint.col + 1 });
+      if (correspondingPoint.row < 0 || correspondingPoint.col < 0) return;
+      const newSurrounding = surroundings.find(surrounding => surrounding.left === arg);
+      if (newSurrounding === undefined) {
+        console.log('Do\'t find surrounding character')
+        return;
+      }
+
+      setLine(currentPoint.row, currentLine.slice(0, currentPoint.col) + newSurrounding.left + currentLine.slice(currentPoint.col+1))
+
+      const line = await getLine(correspondingPoint.row);
+      await setLine(correspondingPoint.row, line.slice(0, correspondingPoint.col) + newSurrounding.right + line.slice(correspondingPoint.col+1))
+    }
+  });
+
   vim.execute(`
     command! RmSurround call denops#request('${vim.name}', 'remove', [])
+    command! -nargs=1 ChSurround call denops#request('${vim.name}', 'change', [<f-args>])
   `);
 });
 
