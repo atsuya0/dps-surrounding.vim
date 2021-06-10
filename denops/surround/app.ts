@@ -1,4 +1,4 @@
-import { main } from "https://deno.land/x/denops_std@v0.8/mod.ts";
+import { main } from "https://deno.land/x/denops_std@v0.14/mod.ts";
 
 type Surrounding = {
   left: string;
