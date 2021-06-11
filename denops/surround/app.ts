@@ -91,7 +91,7 @@ main(async ({ vim }) => {
       const correspondingPoint = await searchSurrounding(surrounding, { ...currentPoint, col: currentPoint.col + 1 });
       if (correspondingPoint.row < 0 || correspondingPoint.col < 0) return;
 
-      for (let point of [correspondingPoint, currentPoint]) {
+      for (const point of [correspondingPoint, currentPoint]) {
         const targetLine = await getLine(point.row);
         setLine(point.row, targetLine.slice(0, point.col) + targetLine.slice(point.col+1))
       }
