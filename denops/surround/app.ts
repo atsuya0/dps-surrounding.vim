@@ -157,7 +157,11 @@ main(async ({ vim }) => {
       }
       const reverseLine = currentLine.split('').reverse().join('');
       const oppositeCol = currentLine.length - currentCol
-      const beginningIndex = currentLine.length - reverseLine.slice(oppositeCol).search(/\s/) - oppositeCol
+      let indexBetweenWordAndPreviousWord = reverseLine.slice(oppositeCol).search(/\s/)
+      if (indexBetweenWordAndPreviousWord < 0) {
+        indexBetweenWordAndPreviousWord = currentLine.length - oppositeCol;
+      }
+      const beginningIndex = currentLine.length - indexBetweenWordAndPreviousWord - oppositeCol
       const newLine = currentLine.slice(0, beginningIndex)
                         + surrounding.left
                         + currentLine.slice(beginningIndex, endIndex)
