@@ -154,8 +154,8 @@ main(async ({ vim }) => {
   });
 
   vim.execute(`
-    command! RmSurround call denops#request('${vim.name}', 'remove', [])
-    command! -nargs=1 ChSurround call denops#request('${vim.name}', 'change', [<f-args>])
+    command! RmSurrounding call denops#request('${vim.name}', 'remove', [])
+    command! -nargs=1 ChSurrounding call denops#request('${vim.name}', 'change', [<f-args>])
     command! -nargs=1 SurroundLine call denops#request('${vim.name}', 'surrondLine', [<f-args>])
     command! -nargs=1 SurroundWord call denops#request('${vim.name}', 'surrondWord', [<f-args>])
   `);
