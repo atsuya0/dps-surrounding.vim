@@ -40,7 +40,7 @@ main(async ({ vim }) => {
     return { row: row, col: col - 1 };
   }
 
-  const setLine = async (row: number, line: string) => {
+  const setLine = (row: number, line: string) => {
     if (row === 0) {
       vim.call('setline', '.', line);
       return;
