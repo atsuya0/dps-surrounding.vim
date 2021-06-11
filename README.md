@@ -42,9 +42,9 @@ after
 "Hello" World!
 ```
 
-# ChSurround
+# ChSurrounding
 A state where the cursor is at the '{'.  
-execute `ChSurround[`.  
+execute `ChSurrounding[`.  
 before
 ```
 const test = (arg: unknown) => {
@@ -62,9 +62,9 @@ const test = (arg: unknown) => [
 ]
 ```
 
-# RmSurround
+# RmSurrounding
 A state where the cursor is at the '('.  
-execute `RmSurround`.  
+execute `RmSurrounding`.  
 before
 ```
 const test = (arg: unknown) => {
@@ -87,6 +87,6 @@ const test = arg: unknown => {
 nmap <Leader>s [surround]
 nnoremap <silent> [surround]l :SurroundLine<space>
 nnoremap <silent> [surround]w :SurroundWord<space>
-nnoremap <silent> [surround]c :ChSurround<space>
-nnoremap <silent> [surround]r :RmSurround<CR>
+nnoremap <silent> [surround]c :ChSurrounding<space>
+nnoremap <silent> [surround]r :RmSurrounding<CR>
 ```
