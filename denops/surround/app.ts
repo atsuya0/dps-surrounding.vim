@@ -31,6 +31,15 @@ type Point = {
 }
 
 main(async ({ vim }) => {
+  const getCurrentPoint = async (): Promise<Point> => {
+    const row = await vim.call('line', '.');
+    if (typeof row !== 'number') return { row: -1, col: -1 };
+    const col = await vim.call('col', '.');
+    if (typeof col !== 'number') return { row: -1, col: -1 };
+
+    return { row: row, col: col - 1 };
+  }
+
   const setLine = async (row: number, line: string) => {
     if (row === 0) {
       vim.call('setline', '.', line);
@@ -69,12 +78,9 @@ main(async ({ vim }) => {
 
   vim.register({
     async remove(): Promise<void> {
-      const currentRow = await vim.call('line', '.');
-      if (typeof currentRow !== 'number') return;
-      const currentCol = await vim.call('col', '.');
-      if (typeof currentCol !== 'number') return;
+      const currentPoint = await getCurrentPoint();
+      if (currentPoint.row < 0 || currentPoint.col < 0) return;
 
-      const currentPoint: Point = { row: currentRow, col: currentCol - 1 };
       const currentLine = await getLine(currentPoint.row);
       const surrounding = new Surroundings().lookup(currentLine[currentPoint.col]);
       if (surrounding === undefined) {
@@ -94,12 +100,9 @@ main(async ({ vim }) => {
 
   vim.register({
     async change(arg: unknown): Promise<void> {
-      const currentRow = await vim.call('line', '.');
-      if (typeof currentRow !== 'number') return;
-      const currentCol = await vim.call('col', '.');
-      if (typeof currentCol !== 'number') return;
+      const currentPoint = await getCurrentPoint();
+      if (currentPoint.row < 0 || currentPoint.col < 0) return;
 
-      const currentPoint: Point = { row: currentRow, col: currentCol - 1 };
       const currentLine = await getLine(currentPoint.row);
       const surroundings = new Surroundings();
       const surrounding = surroundings.lookup(currentLine[currentPoint.col]);
