@@ -84,7 +84,7 @@ main(async ({ vim }) => {
       const currentLine = await getLine(currentPoint.row);
       const surrounding = new Surroundings().lookup(currentLine[currentPoint.col]);
       if (surrounding === undefined) {
-        console.log('Not surrounding character');
+        console.log('The unsupported character.');
         return;
       }
 
@@ -107,7 +107,7 @@ main(async ({ vim }) => {
       const surroundings = new Surroundings();
       const surrounding = surroundings.lookup(currentLine[currentPoint.col]);
       if (surrounding === undefined) {
-        console.log('Not surrounding character');
+        console.log('The unsupported character.');
         return;
       }
 
@@ -115,7 +115,7 @@ main(async ({ vim }) => {
       if (correspondingPoint.row < 0 || correspondingPoint.col < 0) return;
       const newSurrounding = surroundings.lookup(arg);
       if (newSurrounding === undefined) {
-        console.log('Do\'t find surrounding character')
+        console.log('Do\'t find the corresponding character.')
         return;
       }
 
@@ -130,7 +130,7 @@ main(async ({ vim }) => {
     async surrondLine(arg: unknown): Promise<void> {
       const surrounding = new Surroundings().lookup(arg);
       if (surrounding === undefined) {
-        console.log('Not surrounding character');
+        console.log('The unsupported character.');
         return;
       }
       const currentLine = await getLine(0);
@@ -143,7 +143,7 @@ main(async ({ vim }) => {
     async surrondWord(arg: unknown): Promise<void> {
       const surrounding = new Surroundings().lookup(arg);
       if (surrounding === undefined) {
-        console.log('Not surrounding character');
+        console.log('The unsupported character.');
         return;
       }
       const currentLine = await getLine(0);
