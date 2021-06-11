@@ -48,11 +48,11 @@ main(async ({ vim }) => {
     vim.call('setline', row.toString(), line);
   }
 
-  const getLine = async (row: number): Promise<string> => {
+  const getLine = (row: number): string => {
     if (row === 0) {
-      return vim.call('getline', '.') as Promise<string>;
+      return vim.call('getline', '.');
     }
-    return vim.call('getline', row.toString()) as Promise<string>;
+    return vim.call('getline', row.toString());
   }
 
   const searchSurrounding = async (surrounding: Surrounding, startingPoint: Point): Promise<Point> => {
