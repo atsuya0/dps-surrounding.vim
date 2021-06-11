@@ -5,15 +5,25 @@ type Surrounding = {
   right: string;
 }
 
-const surroundings: Surrounding[] = [
-  { left: '(', right: ')' },
-  { left: '[', right: ']' },
-  { left: '{', right: '}' },
-  { left: '<', right: '>' },
-  { left: '\'', right: '\'' },
-  { left: '"', right: '"' },
-  { left: '`', right: '`' }
-];
+class Surroundings {
+  private values: Surrounding[];
+
+  constructor() {
+    this.values = [
+      { left: '(', right: ')' },
+      { left: '[', right: ']' },
+      { left: '{', right: '}' },
+      { left: '<', right: '>' },
+      { left: '\'', right: '\'' },
+      { left: '"', right: '"' },
+      { left: '`', right: '`' }
+    ];
+  }
+
+  lookup(char: string): Surrounding | undefined {
+    return this.values.find(surrounding => surrounding.left === char);
+  }
+}
 
 type Point = {
   row: number;
@@ -66,7 +76,7 @@ main(async ({ vim }) => {
 
       const currentPoint: Point = { row: currentRow, col: currentCol - 1 };
       const currentLine = await getLine(currentPoint.row);
-      const surrounding = surroundings.find(surrounding => surrounding.left === currentLine[currentPoint.col]);
+      const surrounding = new Surroundings().lookup(currentLine[currentPoint.col]);
       if (surrounding === undefined) {
         console.log('Not surrounding character');
         return;
@@ -91,7 +101,8 @@ main(async ({ vim }) => {
 
       const currentPoint: Point = { row: currentRow, col: currentCol - 1 };
       const currentLine = await getLine(currentPoint.row);
-      const surrounding = surroundings.find(surrounding => surrounding.left === currentLine[currentPoint.col]);
+      const surroundings = new Surroundings();
+      const surrounding = surroundings.lookup(currentLine[currentPoint.col]);
       if (surrounding === undefined) {
         console.log('Not surrounding character');
         return;
@@ -99,7 +110,7 @@ main(async ({ vim }) => {
 
       const correspondingPoint = await searchSurrounding(surrounding, { ...currentPoint, col: currentPoint.col + 1 });
       if (correspondingPoint.row < 0 || correspondingPoint.col < 0) return;
-      const newSurrounding = surroundings.find(surrounding => surrounding.left === arg);
+      const newSurrounding = surroundings.lookup(arg);
       if (newSurrounding === undefined) {
         console.log('Do\'t find surrounding character')
         return;
@@ -114,7 +125,7 @@ main(async ({ vim }) => {
 
   vim.register({
     async surrondLine(arg: unknown): Promise<void> {
-      const surrounding = surroundings.find(surrounding => surrounding.left === arg);
+      const surrounding = new Surroundings().lookup(arg);
       if (surrounding === undefined) {
         console.log('Not surrounding character');
         return;
@@ -127,7 +138,7 @@ main(async ({ vim }) => {
 
   vim.register({
     async surrondWord(arg: unknown): Promise<void> {
-      const surrounding = surroundings.find(surrounding => surrounding.left === arg);
+      const surrounding = new Surroundings().lookup(arg);
       if (surrounding === undefined) {
         console.log('Not surrounding character');
         return;
