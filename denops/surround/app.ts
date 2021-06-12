@@ -58,15 +58,15 @@ main(async ({ vim }) => {
   const searchSurrounding = async (surrounding: Surrounding, startingPoint: Point): Promise<Point> => {
     const line = await getLine(startingPoint.row);
 
-    let index = line.slice(startingPoint.col).indexOf(surrounding.left);
-    if (index >= 0) {
-      const point = await searchSurrounding(surrounding, { row: startingPoint.row, col: startingPoint.col + index + 1 });
+    const leftIndex = line.slice(startingPoint.col).indexOf(surrounding.left);
+    if (leftIndex >= 0) {
+      const point = await searchSurrounding(surrounding, { row: startingPoint.row, col: startingPoint.col + leftIndex + 1 });
       return searchSurrounding(surrounding, { row: point.row, col: point.col + 1 });
     }
 
-    index = line.slice(startingPoint.col).indexOf(surrounding.right);
-    if (index >= 0) {
-      return { row: startingPoint.row, col: startingPoint.col + index };
+    const rightIndex = line.slice(startingPoint.col).indexOf(surrounding.right);
+    if (rightIndex >= 0) {
+      return { row: startingPoint.row, col: startingPoint.col + rightIndex };
     }
 
     const nextNonBlank = await vim.call('nextnonblank', startingPoint.row + 1);
