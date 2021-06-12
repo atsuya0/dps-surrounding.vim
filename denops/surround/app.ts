@@ -1,175 +1,206 @@
 import { main, Vim } from "https://deno.land/x/denops_std@v0.14/mod.ts";
 
-type Surrounding = {
-  left: string;
-  right: string;
-}
-
-class Surroundings {
-  private values: Surrounding[];
-
-  constructor() {
-    this.values = [
-      { left: '(', right: ')' },
-      { left: '[', right: ']' },
-      { left: '{', right: '}' },
-      { left: '<', right: '>' },
-      { left: '\'', right: '\'' },
-      { left: '"', right: '"' },
-      { left: '`', right: '`' }
-    ];
-  }
-
-  lookup(char: string): Surrounding | undefined {
-    return this.values.find(surrounding => surrounding.left === char);
-  }
-}
-
 type Point = {
   row: number;
   col: number;
-}
+};
 
-const getCurrentPoint = async (vim: Vim): Promise<Point> => {
-  const row = await vim.call('line', '.');
-  if (typeof row !== 'number') return { row: -1, col: -1 };
-  const col = await vim.call('col', '.');
-  if (typeof col !== 'number') return { row: -1, col: -1 };
+type Pair = {
+  left: string;
+  right: string;
+};
 
-  return { row: row, col: col - 1 };
-}
+class Pairs {
+  private static values: Pair[] = [
+    { left: '(', right: ')' },
+    { left: '[', right: ']' },
+    { left: '{', right: '}' },
+    { left: '<', right: '>' },
+    { left: '\'', right: '\'' },
+    { left: '"', right: '"' },
+    { left: '`', right: '`' }
+  ];
 
-const setLine = (vim: Vim, row: number, line: string) => {
-  if (row === 0) {
-    vim.call('setline', '.', line);
-    return;
+  static lookup(char: string): Pair {
+    const pair = Pairs.values.find(v => v.left === char);
+    if (pair === undefined) {
+      throw new Error('The unsupported character.');
+    }
+    return pair;
   }
-  vim.call('setline', row.toString(), line);
 }
 
-const getLine = (vim: Vim, row: number): string => {
-  if (row === 0) {
-    return vim.call('getline', '.');
+class Surrounding {
+  private pair: Pair;
+  private currentPoint: Point;
+  private correspondingPoint: Point;
+
+  private editor: Editor;
+
+  constructor(vim: Vim): void {
+    this.editor = new Editor(vim);
   }
-  return vim.call('getline', row.toString());
-}
 
-const searchSurrounding = async (vim: Vim, surrounding: Surrounding, startingPoint: Point): Promise<Point> => {
-  const line = await getLine(vim, startingPoint.row);
+  async initialize(): Promise<void> {
+    this.currentPoint = await this.getCurrentPoint();
+    const line = await this.editor.getLine(this.currentPoint.row);
+    this.pair = Pairs.lookup(line[this.currentPoint.col])
+    this.correspondingPoint = await this.findCorrespondingPoint({ row: this.currentPoint.row, col: this.currentPoint.col + 1 });
+  }
 
-  if (surrounding.left !== surrounding.right) {
-    const leftIndex = line.slice(startingPoint.col).indexOf(surrounding.left);
-    if (leftIndex >= 0) {
-      const point = await searchSurrounding(vim, surrounding, { row: startingPoint.row, col: startingPoint.col + leftIndex + 1 });
-      return searchSurrounding(vim, surrounding, { row: point.row, col: point.col + 1 });
+  async getCurrentPoint(): Promise<Point> {
+    const row = await this.editor.getRow();
+    const col = await this.editor.getCol();
+    return { row: row, col: col - 1 };
+  }
+
+  async findCorrespondingPoint(point: Point): Promise<Point> {
+    const line = await this.editor.getLine(point.row);
+
+    const leftIndex = line.slice(point.col).indexOf(this.pair.left);
+    const rightIndex = line.slice(point.col).indexOf(this.pair.right);
+    if ((leftIndex < 0 && 0 <= rightIndex) || (0 <= rightIndex && 0 <= leftIndex && rightIndex <= leftIndex)) {
+      return { row: point.row, col: point.col + rightIndex };
+    } else if ((rightIndex < 0 && 0 <= leftIndex) || (0 <= rightIndex && 0 <= leftIndex && leftIndex < rightIndex)) {
+      const tmpPoint = await this.findCorrespondingPoint({ row: point.row, col: point.col + leftIndex + 1 });
+      return this.findCorrespondingPoint({ row: tmpPoint.row, col: tmpPoint.col + 1 });
+    }
+
+    const nextNonBlank = await this.editor.nextNonBlank(point.row + 1);
+    if (typeof nextNonBlank !== 'number' || nextNonBlank === 0) {
+      throw new Error('Do\'t find the corresponding character.');
+    }
+    return this.findCorrespondingPoint({ row: nextNonBlank, col: 0 });
+  }
+
+  async remove(): Promise<void> {
+    for (const point of [this.correspondingPoint, this.currentPoint]) {
+      const line = await this.editor.getLine(point.row);
+      this.editor.setLine(point.row, line.slice(0, point.col) + line.slice(point.col+1));
     }
   }
 
-  const rightIndex = line.slice(startingPoint.col).indexOf(surrounding.right);
-  if (rightIndex >= 0) {
-    return { row: startingPoint.row, col: startingPoint.col + rightIndex };
+  async change(arg: string): Promise<void> {
+    const newPair = Pairs.lookup(arg);
+
+    let line = await this.editor.getLine(this.currentPoint.row);
+    this.editor.setLine(this.currentPoint.row, line.slice(0, this.currentPoint.col) + newPair.left + line.slice(this.currentPoint.col+1));
+
+    line = await this.editor.getLine(this.correspondingPoint.row);
+    await this.editor.setLine(this.correspondingPoint.row, line.slice(0, this.correspondingPoint.col) + newPair.right + line.slice(this.correspondingPoint.col+1));
+  }
+}
+
+class Editor {
+  private vim: Vim;
+
+  constructor(vim: Vim): void {
+    this.vim = vim;
   }
 
-  const nextNonBlank = await vim.call('nextnonblank', startingPoint.row + 1);
-  if (typeof nextNonBlank !== 'number' || nextNonBlank === 0) {
-    return { row: -1, col: -1 };
+  getLine(row: number): string {
+    if (row === 0) {
+      return this.vim.call('getline', '.');
+    }
+    return this.vim.call('getline', row.toString());
   }
-  return searchSurrounding(vim, surrounding, { row: nextNonBlank, col: 0 });
+
+  setLine(row: number, line: string): void {
+    if (row === 0) {
+      this.vim.call('setline', '.', line);
+      return;
+    }
+    this.vim.call('setline', row.toString(), line);
+  }
+
+  getRow(): number {
+    return this.vim.call('line', '.');
+  }
+
+  getCol(): number {
+    return this.vim.call('col', '.');
+  }
+
+  nextNonBlank(row: number): number {
+    return this.vim.call('nextnonblank', row);
+  }
 }
 
 main(async ({ vim }) => {
   vim.register({
     async remove(): Promise<void> {
-      const currentPoint = await getCurrentPoint(vim);
-      if (currentPoint.row < 0 || currentPoint.col < 0) return;
-
-      const currentLine = await getLine(vim, currentPoint.row);
-      const surrounding = new Surroundings().lookup(currentLine[currentPoint.col]);
-      if (surrounding === undefined) {
-        console.log('The unsupported character.');
+      const surrounding = new Surrounding(vim);
+      try {
+        await surrounding.initialize();
+      } catch (e) {
+        console.log(e.message);
         return;
       }
-
-      const correspondingPoint = await searchSurrounding(vim, surrounding, { ...currentPoint, col: currentPoint.col + 1 });
-      if (correspondingPoint.row < 0 || correspondingPoint.col < 0) return;
-
-      for (const point of [correspondingPoint, currentPoint]) {
-        const targetLine = await getLine(vim, point.row);
-        setLine(vim, point.row, targetLine.slice(0, point.col) + targetLine.slice(point.col+1))
-      }
+      await surrounding.remove();
     }
   });
 
   vim.register({
     async change(arg: unknown): Promise<void> {
-      const currentPoint = await getCurrentPoint(vim);
-      if (currentPoint.row < 0 || currentPoint.col < 0) return;
-
-      const currentLine = await getLine(vim, currentPoint.row);
-      const surroundings = new Surroundings();
-      const surrounding = surroundings.lookup(currentLine[currentPoint.col]);
-      if (surrounding === undefined) {
-        console.log('The unsupported character.');
-        return;
+      const surrounding = new Surrounding(vim);
+      try {
+        await surrounding.initialize();
+        await surrounding.change(arg);
+      } catch (e) {
+        console.log(e.message);
       }
-
-      const correspondingPoint = await searchSurrounding(vim, surrounding, { ...currentPoint, col: currentPoint.col + 1 });
-      if (correspondingPoint.row < 0 || correspondingPoint.col < 0) return;
-      const newSurrounding = surroundings.lookup(arg);
-      if (newSurrounding === undefined) {
-        console.log('Do\'t find the corresponding character.')
-        return;
-      }
-
-      setLine(vim, currentPoint.row, currentLine.slice(0, currentPoint.col) + newSurrounding.left + currentLine.slice(currentPoint.col+1))
-
-      const line = await getLine(vim, correspondingPoint.row);
-      await setLine(vim, correspondingPoint.row, line.slice(0, correspondingPoint.col) + newSurrounding.right + line.slice(correspondingPoint.col+1))
     }
   });
 
   vim.register({
     async surrondLine(arg: unknown): Promise<void> {
-      const surrounding = new Surroundings().lookup(arg);
-      if (surrounding === undefined) {
-        console.log('The unsupported character.');
+      let pair;
+      try {
+        pair = Pairs.lookup(arg);
+      } catch (e) {
+        console.log(e.message);
         return;
       }
-      const currentLine = await getLine(vim, 0);
+
+      const editor = new Editor(vim);
+      const currentLine = await editor.getLine(0);
       const beginningIndex = currentLine.search(/\S/);
-      setLine(vim , 0, currentLine.slice(0, beginningIndex) + surrounding.left + currentLine.slice(beginningIndex) + surrounding.right)
+      editor.setLine(0, currentLine.slice(0, beginningIndex) + pair.left + currentLine.slice(beginningIndex) + pair.right);
     }
   });
 
   vim.register({
     async surrondWord(arg: unknown): Promise<void> {
-      const surrounding = new Surroundings().lookup(arg);
-      if (surrounding === undefined) {
-        console.log('The unsupported character.');
+      let pair;
+      try {
+        pair = Pairs.lookup(arg);
+      } catch (e) {
+        console.log(e.message);
         return;
       }
-      const currentLine = await getLine(vim, 0);
-      const currentCol = await vim.call('col', '.');
-      if (typeof currentCol !== 'number') return;
 
-      let endIndex = currentLine.length;
-      const indexBetweenWordAndNextWord = currentLine.slice(currentCol).search(/\s/)
+      const editor = new Editor(vim);
+      const line = await editor.getLine(0);
+      const col = await editor.getCol();
+
+      let endIndex = line.length;
+      const indexBetweenWordAndNextWord = line.slice(col).search(/\s/);
       if (indexBetweenWordAndNextWord >= 0) {
-        endIndex = indexBetweenWordAndNextWord + currentCol;
+        endIndex = indexBetweenWordAndNextWord + col;
       }
-      const reverseLine = currentLine.split('').reverse().join('');
-      const oppositeCol = currentLine.length - currentCol
-      let indexBetweenWordAndPreviousWord = reverseLine.slice(oppositeCol).search(/\s/)
+      const reverseLine = line.split('').reverse().join('');
+      const oppositeCol = line.length - col;
+      let indexBetweenWordAndPreviousWord = reverseLine.slice(oppositeCol).search(/\s/);
       if (indexBetweenWordAndPreviousWord < 0) {
-        indexBetweenWordAndPreviousWord = currentLine.length - oppositeCol;
+        indexBetweenWordAndPreviousWord = line.length - oppositeCol;
       }
-      const beginningIndex = currentLine.length - indexBetweenWordAndPreviousWord - oppositeCol
-      const newLine = currentLine.slice(0, beginningIndex)
-                        + surrounding.left
-                        + currentLine.slice(beginningIndex, endIndex)
-                        + surrounding.right
-                        + currentLine.slice(endIndex)
-      setLine(vim, 0, newLine)
+      const beginningIndex = line.length - indexBetweenWordAndPreviousWord - oppositeCol;
+      const newLine = line.slice(0, beginningIndex)
+                        + pair.left
+                        + line.slice(beginningIndex, endIndex)
+                        + pair.right
+                        + line.slice(endIndex);
+      editor.setLine(0, newLine);
     }
   });
 
