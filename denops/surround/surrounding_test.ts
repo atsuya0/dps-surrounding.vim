@@ -49,3 +49,21 @@ Deno.test('Surrounding.remove()', async () => {
   ];
   assertEquals(lines, expected);
 });
+
+Deno.test('Surrounding.change()', async () => {
+  const lines: string[] = [
+    'constructor(vim: Vim): void {',
+    '  this.editor = new Editor(vim);',
+    '}'
+  ];
+  const surrounding = new Surrounding(new MockEditor(lines, 29));
+  await surrounding.initialize();
+  await surrounding.change('<');
+
+  const expected: string[] = [
+    'constructor(vim: Vim): void <',
+    '  this.editor = new Editor(vim);',
+    '>'
+  ];
+  assertEquals(lines, expected);
+});
