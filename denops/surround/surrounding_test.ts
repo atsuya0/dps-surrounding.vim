@@ -32,20 +32,20 @@ class MockEditor {
   }
 }
 
-Deno.test('a', async () => {
+Deno.test('Surrounding.remove()', async () => {
   const lines: string[] = [
     'constructor(vim: Vim): void {',
     '  this.editor = new Editor(vim);',
     '}'
   ];
-  const surrounding = new Surrounding(new MockEditor(lines, 12));
+  const surrounding = new Surrounding(new MockEditor(lines, 29));
   await surrounding.initialize();
   await surrounding.remove();
 
   const expected: string[] = [
-    'constructorvim: Vim: void {',
+    'constructor(vim: Vim): void ',
     '  this.editor = new Editor(vim);',
-    '}'
+    ''
   ];
   assertEquals(lines, expected);
 });
