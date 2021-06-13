@@ -1,5 +1,12 @@
-import { Editor } from './editor.ts';
 import { Pair, Pairs } from './pair.ts';
+
+interface IO {
+  getLine(row: number): string;
+  setLine(row: number, line: string): void;
+  getRow(): number;
+  getCol(): number;
+  nextNonBlank(row: number): number;
+}
 
 type Point = {
   row: number;
@@ -11,10 +18,14 @@ export class Surrounding {
   private currentPoint: Point;
   private correspondingPoint: Point;
 
-  private editor: Editor;
+  private editor: IO;
 
-  constructor(vim: Vim): void {
-    this.editor = new Editor(vim);
+  constructor(editor: IO) {
+    this.editor = editor;
+
+    this.pair = { left: '', right: '' };
+    this.currentPoint = { row: -1, col: -1 };
+    this.correspondingPoint = { row: -1, col: -1 };
   }
 
   async initialize(): Promise<void> {

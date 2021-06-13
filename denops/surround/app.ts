@@ -7,7 +7,7 @@ import { Surrounding } from './surrounding.ts';
 main(async ({ vim }) => {
   vim.register({
     async remove(): Promise<void> {
-      const surrounding = new Surrounding(vim);
+      const surrounding = new Surrounding(new Editor(vim));
       try {
         await surrounding.initialize();
       } catch (e) {
@@ -20,7 +20,7 @@ main(async ({ vim }) => {
 
   vim.register({
     async change(arg: unknown): Promise<void> {
-      const surrounding = new Surrounding(vim);
+      const surrounding = new Surrounding(new Editor(vim));
       try {
         await surrounding.initialize();
         await surrounding.change(arg);
