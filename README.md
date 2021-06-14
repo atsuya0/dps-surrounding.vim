@@ -19,7 +19,7 @@ repo = 'tayusa/surround.vim'
 
 # SurroundLine
 A state where the cursor is at the second character.  
-execute `SurroundLine<`.  
+execute `SurroundLine <`.  
 
 before
 ```
@@ -32,7 +32,7 @@ after
 
 # SurroundWord
 A state where the cursor is at the second character.  
-execute `SurroundLine"`.  
+execute `SurroundWord "`.  
 before
 ```
 Hello World!
@@ -44,7 +44,7 @@ after
 
 # ChSurrounding
 A state where the cursor is at the '{'.  
-execute `ChSurrounding[`.  
+execute `ChSurrounding [`.  
 before
 ```
 const test = (arg: unknown) => {
