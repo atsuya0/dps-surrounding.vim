@@ -11,40 +11,41 @@ class MockEditor {
     this.col = col;
   }
 
-  getLine(row: number): string {
-    return this.lines[row];
+  getLine(row: number): Promise<string> {
+    return new Promise((resolve, _) => resolve(this.lines[row]));
   }
 
-  setLine(row: number, line: string): void {
+  setLine(row: number, line: string): Promise<void> {
     this.lines[row] = line;
+    return new Promise((resolve, _) => resolve());
   }
 
-  getRow(): number {
-    return 0;
+  getRow(): Promise<number> {
+    return new Promise((resolve, _) => resolve(0));
   }
 
-  getCol(): number {
-    return this.col;
+  getCol(): Promise<number> {
+    return new Promise((resolve, _) => resolve(this.col));
   }
 
-  nextNonBlank(row: number): number {
-    return row;
+  nextNonBlank(row: number): Promise<number> {
+    return new Promise((resolve, _) => resolve(row));
   }
 }
 
 Deno.test('Surrounding.remove()', async () => {
   const lines: string[] = [
-    'constructor(vim: Vim): void {',
-    '  this.editor = new Editor(vim);',
+    'constructor(denops: Denops): void {',
+    '  this.editor = new Editor(denops);',
     '}'
   ];
-  const surrounding = new Surrounding(new MockEditor(lines, 29));
+  const surrounding = new Surrounding(new MockEditor(lines, 35));
   await surrounding.initialize();
   await surrounding.remove();
 
   const expected: string[] = [
-    'constructor(vim: Vim): void ',
-    '  this.editor = new Editor(vim);',
+    'constructor(denops: Denops): void ',
+    '  this.editor = new Editor(denops);',
     ''
   ];
   assertEquals(lines, expected);
@@ -52,17 +53,17 @@ Deno.test('Surrounding.remove()', async () => {
 
 Deno.test('Surrounding.change()', async () => {
   const lines: string[] = [
-    'constructor(vim: Vim): void {',
-    '  this.editor = new Editor(vim);',
+    'constructor(denops: Denops): void {',
+    '  this.editor = new Editor(denops);',
     '}'
   ];
-  const surrounding = new Surrounding(new MockEditor(lines, 29));
+  const surrounding = new Surrounding(new MockEditor(lines, 35));
   await surrounding.initialize();
   await surrounding.change('<');
 
   const expected: string[] = [
-    'constructor(vim: Vim): void <',
-    '  this.editor = new Editor(vim);',
+    'constructor(denops: Denops): void <',
+    '  this.editor = new Editor(denops);',
     '>'
   ];
   assertEquals(lines, expected);

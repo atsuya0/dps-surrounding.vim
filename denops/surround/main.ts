@@ -1,13 +1,14 @@
-import { main } from 'https://deno.land/x/denops_std@v0.14/mod.ts';
+import { Denops } from 'https://deno.land/x/denops_std@v1.8.1/mod.ts';
+import { execute } from "https://deno.land/x/denops_std@v1.8.1/helper/mod.ts";
 
 import { Editor } from './editor.ts';
 import { Pairs } from './pair.ts';
 import { Surrounding } from './surrounding.ts';
 
-main(async ({ vim }) => {
-  vim.register({
+export async function main(denops: Denops) {
+  denops.dispatcher = {
     async remove(): Promise<void> {
-      const surrounding = new Surrounding(new Editor(vim));
+      const surrounding = new Surrounding(new Editor(denops));
       try {
         await surrounding.initialize();
       } catch (e) {
@@ -15,49 +16,43 @@ main(async ({ vim }) => {
         return;
       }
       await surrounding.remove();
-    }
-  });
+    },
 
-  vim.register({
     async change(arg: unknown): Promise<void> {
-      const surrounding = new Surrounding(new Editor(vim));
+      const surrounding = new Surrounding(new Editor(denops));
       try {
         await surrounding.initialize();
-        await surrounding.change(arg);
+        await surrounding.change(arg as string);
       } catch (e) {
         console.log(e.message);
       }
-    }
-  });
+    },
 
-  vim.register({
     async surrondLine(arg: unknown): Promise<void> {
       let pair;
       try {
-        pair = Pairs.lookup(arg);
+        pair = Pairs.lookup(arg as string);
       } catch (e) {
         console.log(e.message);
         return;
       }
 
-      const editor = new Editor(vim);
+      const editor = new Editor(denops);
       const currentLine = await editor.getLine(0);
       const beginningIndex = currentLine.search(/\S/);
       editor.setLine(0, currentLine.slice(0, beginningIndex) + pair.left + currentLine.slice(beginningIndex) + pair.right);
-    }
-  });
+    },
 
-  vim.register({
     async surrondWord(arg: unknown): Promise<void> {
       let pair;
       try {
-        pair = Pairs.lookup(arg);
+        pair = Pairs.lookup(arg as string);
       } catch (e) {
         console.log(e.message);
         return;
       }
 
-      const editor = new Editor(vim);
+      const editor = new Editor(denops);
       const line = await editor.getLine(0);
       const col = await editor.getCol();
 
@@ -80,13 +75,15 @@ main(async ({ vim }) => {
                         + line.slice(endIndex);
       editor.setLine(0, newLine);
     }
-  });
+  };
 
-  await vim.execute(`
-    command! RmSurrounding call denops#request('${vim.name}', 'remove', [])
-    command! -nargs=1 ChSurrounding call denops#request('${vim.name}', 'change', [<f-args>])
-    command! -nargs=1 SurroundLine call denops#request('${vim.name}', 'surrondLine', [<f-args>])
-    command! -nargs=1 SurroundWord call denops#request('${vim.name}', 'surrondWord', [<f-args>])
-  `);
-});
-
+  await execute(
+    denops,
+    `
+    command! RmSurrounding call denops#notify('${denops.name}', 'remove', [])
+    command! -nargs=1 ChSurrounding call denops#notify('${denops.name}', 'change', [<f-args>])
+    command! -nargs=1 SurroundLine call denops#notify('${denops.name}', 'surrondLine', [<f-args>])
+    command! -nargs=1 SurroundWord call denops#notify('${denops.name}', 'surrondWord', [<f-args>])
+    `,
+  );
+}
