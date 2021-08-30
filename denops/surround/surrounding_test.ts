@@ -11,40 +11,40 @@ class MockEditor {
     this.col = col;
   }
 
-  getLine(row: number): string {
+  async getLine(row: number): Promise<string> {
     return this.lines[row];
   }
 
-  setLine(row: number, line: string): void {
+  async setLine(row: number, line: string): Promise<void> {
     this.lines[row] = line;
   }
 
-  getRow(): number {
+  async getRow(): Promise<number> {
     return 0;
   }
 
-  getCol(): number {
+  async getCol(): Promise<number> {
     return this.col;
   }
 
-  nextNonBlank(row: number): number {
+  async nextNonBlank(row: number): Promise<number> {
     return row;
   }
 }
 
 Deno.test('Surrounding.remove()', async () => {
   const lines: string[] = [
-    'constructor(vim: Vim): void {',
-    '  this.editor = new Editor(vim);',
+    'constructor(denops: Denops): void {',
+    '  this.editor = new Editor(denops);',
     '}'
   ];
-  const surrounding = new Surrounding(new MockEditor(lines, 29));
+  const surrounding = new Surrounding(new MockEditor(lines, 35));
   await surrounding.initialize();
   await surrounding.remove();
 
   const expected: string[] = [
-    'constructor(vim: Vim): void ',
-    '  this.editor = new Editor(vim);',
+    'constructor(denops: Denops): void ',
+    '  this.editor = new Editor(denops);',
     ''
   ];
   assertEquals(lines, expected);
@@ -52,17 +52,17 @@ Deno.test('Surrounding.remove()', async () => {
 
 Deno.test('Surrounding.change()', async () => {
   const lines: string[] = [
-    'constructor(vim: Vim): void {',
-    '  this.editor = new Editor(vim);',
+    'constructor(denops: Denops): void {',
+    '  this.editor = new Editor(denops);',
     '}'
   ];
-  const surrounding = new Surrounding(new MockEditor(lines, 29));
+  const surrounding = new Surrounding(new MockEditor(lines, 35));
   await surrounding.initialize();
   await surrounding.change('<');
 
   const expected: string[] = [
-    'constructor(vim: Vim): void <',
-    '  this.editor = new Editor(vim);',
+    'constructor(denops: Denops): void <',
+    '  this.editor = new Editor(denops);',
     '>'
   ];
   assertEquals(lines, expected);

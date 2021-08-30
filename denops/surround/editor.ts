@@ -1,36 +1,36 @@
-import { Vim } from 'https://deno.land/x/denops_std@v0.14/mod.ts';
+import { Denops } from 'https://deno.land/x/denops_std@v1.8.1/mod.ts';
 
 export class Editor {
-  private vim: Vim;
+  private denops: Denops;
 
-  constructor(vim: Vim): void {
-    this.vim = vim;
+  constructor(denops: Denops) {
+    this.denops = denops;
   }
 
-  getLine(row: number): string {
+  async getLine(row: number): Promise<string> {
     if (row === 0) {
-      return this.vim.call('getline', '.');
+      return this.denops.call('getline', '.') as Promise<string>;
     }
-    return this.vim.call('getline', row.toString());
+    return this.denops.call('getline', row.toString()) as Promise<string>;
   }
 
-  setLine(row: number, line: string): void {
+  async setLine(row: number, line: string): Promise<void> {
     if (row === 0) {
-      this.vim.call('setline', '.', line);
+      this.denops.call('setline', '.', line);
       return;
     }
-    this.vim.call('setline', row.toString(), line);
+    this.denops.call('setline', row.toString(), line);
   }
 
-  getRow(): number {
-    return this.vim.call('line', '.');
+  async getRow(): Promise<number> {
+    return this.denops.call('line', '.') as Promise<number>;
   }
 
-  getCol(): number {
-    return this.vim.call('col', '.');
+  async getCol(): Promise<number> {
+    return this.denops.call('col', '.') as Promise<number>;
   }
 
-  nextNonBlank(row: number): number {
-    return this.vim.call('nextnonblank', row);
+  async nextNonBlank(row: number): Promise<number> {
+    return this.denops.call('nextnonblank', row) as Promise<number>;
   }
 }

@@ -1,11 +1,11 @@
 import { Pair, Pairs } from './pair.ts';
 
 interface IO {
-  getLine(row: number): string;
-  setLine(row: number, line: string): void;
-  getRow(): number;
-  getCol(): number;
-  nextNonBlank(row: number): number;
+  getLine(row: number): Promise<string>;
+  setLine(row: number, line: string): Promise<void>;
+  getRow(): Promise<number>;
+  getCol(): Promise<number>;
+  nextNonBlank(row: number): Promise<number>;
 }
 
 type Point = {
