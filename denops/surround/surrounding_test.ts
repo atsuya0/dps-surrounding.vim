@@ -11,24 +11,25 @@ class MockEditor {
     this.col = col;
   }
 
-  async getLine(row: number): Promise<string> {
-    return this.lines[row];
+  getLine(row: number): Promise<string> {
+    return new Promise((resolve, _) => resolve(this.lines[row]));
   }
 
-  async setLine(row: number, line: string): Promise<void> {
+  setLine(row: number, line: string): Promise<void> {
     this.lines[row] = line;
+    return new Promise((resolve, _) => resolve());
   }
 
-  async getRow(): Promise<number> {
-    return 0;
+  getRow(): Promise<number> {
+    return new Promise((resolve, _) => resolve(0));
   }
 
-  async getCol(): Promise<number> {
-    return this.col;
+  getCol(): Promise<number> {
+    return new Promise((resolve, _) => resolve(this.col));
   }
 
-  async nextNonBlank(row: number): Promise<number> {
-    return row;
+  nextNonBlank(row: number): Promise<number> {
+    return new Promise((resolve, _) => resolve(row));
   }
 }
 

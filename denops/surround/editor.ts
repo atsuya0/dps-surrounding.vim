@@ -9,28 +9,28 @@ export class Editor {
 
   async getLine(row: number): Promise<string> {
     if (row === 0) {
-      return this.denops.call('getline', '.') as Promise<string>;
+      return await this.denops.call('getline', '.') as Promise<string>;
     }
-    return this.denops.call('getline', row.toString()) as Promise<string>;
+    return await this.denops.call('getline', row.toString()) as Promise<string>;
   }
 
   async setLine(row: number, line: string): Promise<void> {
     if (row === 0) {
-      this.denops.call('setline', '.', line);
+      await this.denops.call('setline', '.', line);
       return;
     }
-    this.denops.call('setline', row.toString(), line);
+    await this.denops.call('setline', row.toString(), line);
   }
 
   async getRow(): Promise<number> {
-    return this.denops.call('line', '.') as Promise<number>;
+    return await this.denops.call('line', '.') as Promise<number>;
   }
 
   async getCol(): Promise<number> {
-    return this.denops.call('col', '.') as Promise<number>;
+    return await this.denops.call('col', '.') as Promise<number>;
   }
 
   async nextNonBlank(row: number): Promise<number> {
-    return this.denops.call('nextnonblank', row) as Promise<number>;
+    return await this.denops.call('nextnonblank', row) as Promise<number>;
   }
 }
