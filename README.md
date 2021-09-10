@@ -14,7 +14,7 @@ https://deno.land/#installation
 repo = 'vim-denops/denops.vim'
 
 [[plugins]]
-repo = 'tayusa/surround.vim'
+repo = 'atsuya0/surround.vim'
 ```
 
 # SurroundLine
