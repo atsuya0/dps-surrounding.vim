@@ -12,4 +12,4 @@ jobs:
       with:
         deno-version: v1.x
     - name: Lint
-      run: deno lint denops/surround/
+      run: deno lint denops/dps-surrouding/

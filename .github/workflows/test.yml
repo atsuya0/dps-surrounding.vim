@@ -12,4 +12,4 @@ jobs:
       with:
         deno-version: v1.x
     - name: Test
-      run: deno test denops/surround/
+      run: deno test denops/dps-surrouding/

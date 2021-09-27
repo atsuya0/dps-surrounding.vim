@@ -1,4 +1,4 @@
-# surround.vim
+# dps-surrounding.vim
 Add, change or remove brackets and quotes.  
 
 Supported characters.  
@@ -14,7 +14,7 @@ https://deno.land/#installation
 repo = 'vim-denops/denops.vim'
 
 [[plugins]]
-repo = 'atsuya0/surround.vim'
+repo = 'atsuya0/dps-surrounding.vim'
 ```
 
 # SurroundLine
@@ -43,9 +43,9 @@ execute `ChSurrounding <`.
 
 # Example mappings
 ```vim
-nmap <Leader>s [surround]
-nnoremap <silent> [surround]l :SurroundLine<space>
-nnoremap <silent> [surround]w :SurroundWord<space>
-nnoremap <silent> [surround]c :ChSurrounding<space>
-nnoremap <silent> [surround]r :RmSurrounding<CR>
+nmap <Leader>s [surrounding]
+nnoremap <silent> [surrounding]l :SurroundLine<space>
+nnoremap <silent> [surrounding]w :SurroundWord<space>
+nnoremap <silent> [surrounding]c :ChSurrounding<space>
+nnoremap <silent> [surrounding]r :RmSurrounding<CR>
 ```
